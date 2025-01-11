@@ -1,3 +1,16 @@
+.lottery-cell{
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+}
+.mid-cell{
+    
+    align-content: center;
+}
+.highlight-red {
+    color: red;
+}
+
 body {
     background-color: #fc9;
     text-align: center;
@@ -182,7 +195,7 @@ tbody td {
     font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 table, th, td {
-    border: 1px solid #03a9f4a8;
+    border: 1px solid #003d98a8;
 }
 user agent stylesheet
 td {
@@ -215,13 +228,22 @@ td {
 .footer-text-div p.faq-title {
     font-weight: 600;
 }
-footer p{
+footer {
     background-color: #fff;
     color: red;
     font-weight: bold;
     font-size: 25px;
     text-decoration: none;
     border: 4px groove purple;
+    text-shadow: 1px 1px gold;
+    margin: 3px;
+}
+footer p{
+    background-color: #fff;
+    color: red;
+    font-weight: bold;
+    font-size: 25px;
+    text-decoration: none;
     text-shadow: 1px 1px gold;
     margin: 3px;
 }

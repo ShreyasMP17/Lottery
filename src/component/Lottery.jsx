@@ -1,24 +1,89 @@
 import '../styles/LotteryHome.css'
 import { useEffect } from "react";
 import { useState } from "react";
+import { Link } from 'react-router-dom';
+import Logo from './Logo';
 
 const LotteryHome = () => {
 
-    let [lottery, setLottery] = useState([])
+  const [lotteryData, setLotteryData] = useState([]);
+  const [previousResults, setPreviousResults] = useState([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
+    
+    const today = new Date();
+
+    const formattedDate = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+
+    // const parseTime = (timeString) => {
+    //   const [hour, minute] = timeString.split(/[: ]/);
+    //   const ampm = timeString.includes("PM") ? 12 : 0;
+    //   const now = new Date();
+    //   return new Date(
+    //     now.getFullYear(),
+    //     now.getMonth(),
+    //     now.getDate(),
+    //     parseInt(hour) + ampm,
+    //     parseInt(minute)
+    //   );
+    // };
+
+    const parseTime = (timeStr) => {
+      const [hour, minute, period] = timeStr
+        .replace(/[:\s]/g, " ")
+        .split(" ")
+        .map((x) => (isNaN(x) ? x : parseInt(x)));
+      let hours = period === "PM" && hour !== 12 ? hour + 12 : hour;
+      if (period === "AM" && hour === 12) hours = 0;
+      return new Date().setHours(hours, minute, 0, 0);
+    };
+  
+  
+    // Update the current time every minute
+    useEffect(() => {
+      const timer = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 60000);
+      return () => clearInterval(timer);
+    }, []);
+  
+    // Filter and transform data based on time
+    const getFilteredData = () => {
+      return lotteryData.map((lottery) => {
+        const startTime = parseTime(lottery.timeStart);
+        const endTime = parseTime(lottery.timeEnd);
+  
+        if (currentTime >= startTime && currentTime <= endTime) {
+          return { ...lottery, status: "LOADING" }; // Show "Loading..." between timeStart and timeEnd
+        } else if (currentTime > endTime) {
+          return { ...lottery, status: "HIDE" }; // Hide entry after timeEnd
+        } else {
+          return { ...lottery, status: "SHOW" }; // Show lottery numbers before timeStart
+        }
+      });
+    };
+  
+    const displayedData = getFilteredData();
+  
 
     useEffect(() => {
-        let fetching = async () => {
-            let response = await fetch("http://localhost:4000/lottery")
-            let data = await response.json()
-            setLottery(data)
+      const fetchLotteryData = async () => {
+        try {
+          const response = await fetch("http://localhost:4000/lottery");
+          const data = await response.json();
+          setLotteryData(data);
+        } catch (error) {
+          console.error("Error fetching lottery data:", error);
         }
-        fetching()
-    }, [])
-
+      };
+  
+      fetchLotteryData();
+    }, []);
+  
     return (
         <div className="main">
-            <div className='logo'>
-                <h1><span>DP</span>BOSSERVICES.IN</h1>
+            <div className=''>
+              <Logo/>
+              
             </div>
             <div className='heading'>
                 <img src="/shiva.avif" alt="" />
@@ -67,18 +132,26 @@ const LotteryHome = () => {
                 </div>
             </div>
 
-            <div className='liveResult'>
-                <h4>☔LIVE RESULT☔</h4>
-                <div class="lv-mc">
-                    Sabse Tezz Live Result Yahi Milega
-                </div>
-                <div className='live-re'>
-          <span class="h8">WORLI MUMBAI DAY</span>
-          <span class="h9"> 347-49-450</span>
-                  <button onclick="window.location.reload()">Refresh</button>
-               </div> 
-            </div>
-
+            <div className="liveResult">
+      <h4>☔LIVE RESULT☔</h4>
+      <div className="lv-mc">Sabse Tezz Live Result Yahi Milega</div>
+      {displayedData.map((lottery) =>
+        lottery.status === "HIDE" ? null : (
+          <div className="live-re" key={lottery.id}>
+            <span className="h8">{lottery.name}</span>
+            <span className="h9">
+              {lottery.status === "LOADING"
+                ? "Loading..."
+                : `${lottery.leftNo}-${lottery.midNo}`}
+            </span>
+            <button onClick={() => window.location.reload()}>Refresh</button>
+            {lottery.status !== "LOADING" && (
+              <div>सबसे तेज सबसे सही</div>
+            )}
+          </div>
+        )
+      )}
+    </div>
             <div class="text5" >
                 <span >☆ NOTICE ☆</span>
                 अपना बाजार dpbossss.services वेबसाइट में डलवाने  <br />
@@ -103,13 +176,14 @@ const LotteryHome = () => {
         <a href="jodi-chart-record/milan-morning.php" className="jodi">Jodi</a>
       <a href="panel-chart-record/milan-morning.php" className="panel">Panel</a>
   </div> */}
-                {lottery.map(data => (
-                    <div className={`mainData ${data.id === 4 ? 'highlight' : ''}`} >
+                {lotteryData.map(data => (
+                    <div className={`mainData ${[4, 10, 17, 23].includes(data.id) ? 'highlight' : ''}`} >
                         <h4>{data.name}</h4>
                         <span>{data.leftNo}-{data.midNo}-{data.leftNo}</span>
                         <p>{data.timeStart}-{data.timeEnd}</p>
-                        <a href={data.jodi} className="jodi">Jodi</a>
-                        <a href={data.panel} className="panel">Pannel</a>
+                        
+                        <a href={`/jodi/${data.id}`} className="jodi">Jodi</a>
+                        <a href={`/lottery/${data.id}`} className="panel">Pannel</a>
                     </div>
 
                 ))}
@@ -166,7 +240,7 @@ const LotteryHome = () => {
 
                 <div className="ocfg txta-1 rbd onmb gpg0">
   <div className='date'>
-    <p className="k2w5">✔DATE:↬ : 22/12/2024
+    <p className="k2w5">✔DATE:↬ : {formattedDate} 
  ↫</p>
     <span >FREE GUESSING DAILY</span>
     <h5 className="k2w5">OPEN TO CLOSE FIX ANK</h5>
